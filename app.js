@@ -83,7 +83,7 @@ app.get('/', function (req, res) {
   try {
     console.log("trying assert");
     console.log("result: " + JSON.stringify(result));
-    console.log("convo  : " + JSON.stringify(convo));
+    console.log("convo: " + JSON.stringify(convo));
     assert(JSON.stringify(result) == JSON.stringify(convo), "Test Conversation: Result not same as input");
   } catch(e) {
     error = true;
