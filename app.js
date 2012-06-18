@@ -30,23 +30,70 @@ app.configure('production', function(){
 });
 
 var client = redis.createClient();
+
+
+//utilities
+//TODO(Rajiv): Refactor into a utilities.js
+
+function AssertException(message) {
+  this.message = message;
+}
+
+AssertException.prototype.toString = function () {
+  return 'AssertException: ' + this.message;
+}
+
+function assert(exp, message) {
+  if (!exp) {
+    throw new AssertException(message);
+  }
+}
+
+
+//Some tests
+//TODO(Rajiv):Refactor into a test framework 
+var testConvo = function (convo) {
+  var newConvo= convo.save(client);
+  console.log(newConvo);
+  return newConvo;
+}
+
+
 // Routes
-var testConvo = function () {
+app.get('/', function (req, res) {
+  //run the testConvo test
   var convo = new conversation.Conversation({
   title: "Hello World",
   description: "Hello description",
   invitees: [1,2,3],
   items: [1,2]
   });
-  var newConvo= convo.save(client);
-  console.log(newConvo);
-  return newConvo;
-}
 
-app.get('/', function (req, res) {
-  //run the testConvo test
-  result = testConvo();
-  res.json(result);
+  var result = testConvo(convo);
+
+  //reassign to assert later
+  convo = new conversation.Conversation({
+  title: "Hello World",
+  description: "Hello description",
+  invitees: [1,2,3],
+  items: [1,2]
+  });
+
+  var error = false;
+  try {
+    console.log("trying assert");
+    console.log("result: " + JSON.stringify(result));
+    console.log("convo  : " + JSON.stringify(convo));
+    assert(JSON.stringify(result) == JSON.stringify(convo), "Test Conversation: Result not same as input");
+  } catch(e) {
+    error = true;
+    console.log("caught an Exception" + e);
+    if (e instanceof AssertException) {
+      res.send(e);
+    }
+  }
+
+  if (!error) res.json(result);
 });
 
 app.listen(3000, function(){
